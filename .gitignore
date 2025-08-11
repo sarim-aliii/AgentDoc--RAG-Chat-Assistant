@@ -1,0 +1,22 @@
+# Secrets
+.env
+
+# Databases
+chat_history.db
+chroma_db/
+
+# Caches
+__pycache__/
+.streamlit/
+
+
+# IDE specific files
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log

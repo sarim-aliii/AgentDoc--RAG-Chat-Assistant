@@ -1,0 +1,97 @@
+import streamlit as st
+import uuid
+from core import (
+    DatabaseChatMemory,
+    load_forbidden_keywords,
+    is_query_safe,
+    setup_conversational_rag_chain,
+    DB_PATH,
+    FORBIDDEN_KEYWORDS_PATH
+)
+
+
+st.set_page_config(page_title="AgentDoc", page_icon="🤖", layout="wide")
+st.title("🤖 AgentDoc: Publication QA Assistant")
+
+@st.cache_resource(show_spinner="Initializing agent...")
+def load_components():
+    return setup_conversational_rag_chain()
+
+
+rag_chain = load_components()
+forbidden_keywords = load_forbidden_keywords(FORBIDDEN_KEYWORDS_PATH)
+
+user_id = "web_user"
+db_memory = DatabaseChatMemory(db_path=DB_PATH, user_id=user_id)
+
+if "session_id" not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())
+    st.session_state.messages = [{"role": "assistant", "content": "How can I help you today?"}]
+    st.session_state.editing_session_id = None
+
+
+def start_new_chat():
+    st.session_state.session_id = str(uuid.uuid4())
+    st.session_state.messages = [{"role": "assistant", "content": "How can I help you today?"}]
+    st.session_state.editing_session_id = None
+
+def switch_chat(session_id):
+    st.session_state.session_id = session_id
+    history = db_memory.get_session_history(session_id)
+    st.session_state.messages = [{"role": msg.type, "content": msg.content} for msg in history]
+    st.session_state.editing_session_id = None
+
+# --- Sidebar ---
+with st.sidebar:
+    st.header("Chat History")
+    if st.button("➕ New Chat", use_container_width=True):
+        start_new_chat()
+
+    sessions = db_memory.get_all_sessions()
+    for session_id, title in sessions:
+        col1, col2, col3 = st.columns([0.7, 0.15, 0.15])
+        with col1:
+            if st.button(title, key=f"select_{session_id}", use_container_width=True):
+                switch_chat(session_id)
+        with col2:
+            if st.button("✏️", key=f"edit_{session_id}"):
+                st.session_state.editing_session_id = session_id
+        with col3:
+            if st.button("🗑️", key=f"delete_{session_id}"):
+                db_memory.delete_session(session_id)
+                if st.session_state.session_id == session_id:
+                    start_new_chat()
+                st.rerun()
+
+        if st.session_state.get("editing_session_id") == session_id:
+            with st.form(key=f"form_{session_id}"):
+                new_title = st.text_input("New chat name", value=title)
+                if st.form_submit_button("Save"):
+                    db_memory.rename_session(session_id, new_title)
+                    st.session_state.editing_session_id = None
+                    st.rerun()
+
+# --- Main Panel ---
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.write(msg["content"])
+
+if prompt := st.chat_input("Ask a question..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.write(prompt)
+    
+    db_memory.save_message(st.session_state.session_id, role="user", content=prompt)
+
+    with st.chat_message("assistant"):
+        response = ""
+        if not is_query_safe(prompt, forbidden_keywords):
+            response = "I am a document-based assistant and cannot respond to such requests."
+            st.write(response)
+        else:
+            chat_history = db_memory.get_session_history(st.session_state.session_id)
+            chain_input = {"input": prompt, "chat_history": chat_history}
+            response = st.write_stream(rag_chain.stream(chain_input))
+
+    st.session_state.messages.append({"role": "assistant", "content": response})
+    db_memory.save_message(st.session_state.session_id, role="assistant", content=response)

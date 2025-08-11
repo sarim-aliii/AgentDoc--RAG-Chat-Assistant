@@ -1,0 +1,20 @@
+# Core LangChain framework
+langchain
+langchain-huggingface
+langchain-chroma
+langchain-community
+
+# Core Hugging Face libraries
+transformers
+sentence-transformers
+accelerate
+bitsandbytes
+
+# The web framework
+streamlit
+
+# SQLite database driver (usually built-in but good to be explicit)
+db-sqlite3
+
+# For PyTorch (CPU version is fine for deployment server)
+torch
