@@ -91,7 +91,16 @@ if prompt := st.chat_input("Ask a question..."):
         else:
             chat_history = db_memory.get_session_history(st.session_state.session_id)
             chain_input = {"input": prompt, "chat_history": chat_history}
-            response = st.write_stream(rag_chain.stream(chain_input))
 
+            response_container = st.empty()
+            full_response = ""
+            for chunk in rag_chain.stream(chain_input):
+                if "answer" in chunk:
+                    full_response += chunk["answer"]
+                    response_container.markdown(full_response + "▌")
+
+            response_container.markdown(full_response)
+            response = full_response
+            
     st.session_state.messages.append({"role": "assistant", "content": response})
     db_memory.save_message(st.session_state.session_id, role="assistant", content=response)
