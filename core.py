@@ -21,7 +21,7 @@ PERSIST_DIRECTORY = "./chroma_db"
 LLM_MODEL_ID = "google/flan-t5-large"
 DB_PATH = "chat_history.db"
 FORBIDDEN_KEYWORDS_PATH = "forbidden_keywords.txt"
-RELEVANCE_SCORE_THRESHOLD = 1.0 
+RELEVANCE_SCORE_THRESHOLD = 1.5
 
 class DatabaseChatMemory:
     def __init__(self, db_path, user_id):
