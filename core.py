@@ -26,7 +26,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 # --- Configuration ---
 EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 PERSIST_DIRECTORY = "./chroma_db"
-LLM_MODEL_ID = "google/flan-t5-large"
+LLM_MODEL_ID = "google/flan-t5-base"
 DB_PATH = "chat_history.db"
 FORBIDDEN_KEYWORDS_PATH = "forbidden_keywords.txt"
 JSON_FILE_PATH = "publications.json"
