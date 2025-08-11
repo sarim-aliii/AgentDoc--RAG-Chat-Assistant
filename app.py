@@ -1,5 +1,6 @@
 import streamlit as st
 import uuid
+import time 
 from core import (
     DatabaseChatMemory,
     load_forbidden_keywords,
@@ -16,7 +17,6 @@ st.title("🤖 AgentDoc: Publication QA Assistant")
 @st.cache_resource(show_spinner="Initializing agent...")
 def load_components():
     return setup_conversational_rag_chain()
-
 
 rag_chain = load_components()
 forbidden_keywords = load_forbidden_keywords(FORBIDDEN_KEYWORDS_PATH)
@@ -41,7 +41,13 @@ def switch_chat(session_id):
     st.session_state.messages = [{"role": msg.type, "content": msg.content} for msg in history]
     st.session_state.editing_session_id = None
 
-# --- Sidebar ---
+def stream_simulator(text: str):
+    """Displays text with a word-by-word typing effect."""
+    response_container = st.empty()
+    for word in text.split():
+        yield word + " "
+        time.sleep(0.05)
+
 with st.sidebar:
     st.header("Chat History")
     if st.button("➕ New Chat", use_container_width=True):
@@ -71,7 +77,6 @@ with st.sidebar:
                     st.session_state.editing_session_id = None
                     st.rerun()
 
-# --- Main Panel ---
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
@@ -91,16 +96,13 @@ if prompt := st.chat_input("Ask a question..."):
         else:
             chat_history = db_memory.get_session_history(st.session_state.session_id)
             chain_input = {"input": prompt, "chat_history": chat_history}
-
-            response_container = st.empty()
-            full_response = ""
-            for chunk in rag_chain.stream(chain_input):
-                if "answer" in chunk:
-                    full_response += chunk["answer"]
-                    response_container.markdown(full_response + "▌")
-
-            response_container.markdown(full_response)
-            response = full_response
             
+            with st.spinner("Thinking..."):
+                full_response = rag_chain.invoke(chain_input)
+                answer_text = full_response.get("answer", "I'm sorry, I encountered an issue and cannot provide a response.")
+            
+            st.write_stream(stream_simulator(answer_text))
+            response = answer_text
+
     st.session_state.messages.append({"role": "assistant", "content": response})
     db_memory.save_message(st.session_state.session_id, role="assistant", content=response)
