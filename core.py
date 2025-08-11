@@ -139,8 +139,12 @@ def setup_conversational_rag_chain():
 
     history_aware_retriever = create_history_aware_retriever(llm, compression_retriever, contextualize_q_prompt)
 
-    qa_prompt = ChatPromptTemplate.from_messages([("system", "Answer the user's question based only on the following context:\n\n{context}"), 
-        MessagesPlaceholder("chat_history"), ("human", "{input}")])
+    qa_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", "You are a helpful assistant. Answer the user's question based only on the following context:\n\n{context}"),
+            ("human", "{input}"),
+        ]
+    )
 
     question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
     
