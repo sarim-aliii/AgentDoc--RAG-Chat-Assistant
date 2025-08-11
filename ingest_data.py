@@ -6,7 +6,6 @@ from langchain_chroma import Chroma
 import os
 import shutil
 
-# --- Configuration ---
 JSON_FILE_PATH = "publications.json"
 EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 PERSIST_DIRECTORY = "./chroma_db"
@@ -30,11 +29,10 @@ def load_and_split_publications(file_path: str) -> list[Document]:
         document = Document(page_content=str(content), metadata=metadata)
         langchain_documents.append(document)
 
-    # --- THE CRITICAL CHANGE ---
-    # The chunk size is now smaller to ensure it fits within the LLM's context window.
+
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,       # Reduced from 1000
-        chunk_overlap=50,      # Adjusted overlap
+        chunk_size=500,       
+        chunk_overlap=50,     
         length_function=len,
     )
     chunks = text_splitter.split_documents(langchain_documents)
@@ -50,7 +48,6 @@ def create_and_store_embeddings(chunks: list[Document]):
     print("Initializing embedding model...")
     embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
     
-    # Remove old database directory if it exists
     if os.path.exists(PERSIST_DIRECTORY):
         print(f"Removing old database at {PERSIST_DIRECTORY}")
         shutil.rmtree(PERSIST_DIRECTORY)

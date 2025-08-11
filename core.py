@@ -110,4 +110,4 @@ def setup_conversational_rag_chain():
     question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
     
     rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
-    return rag_chain, vector_store
+    return rag_chain
