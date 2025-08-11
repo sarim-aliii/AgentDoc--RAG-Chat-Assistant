@@ -21,3 +21,4 @@ torch
 
 
 pysqlite3-binary
+pypdf
