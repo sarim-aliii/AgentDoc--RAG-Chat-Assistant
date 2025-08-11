@@ -82,7 +82,7 @@ def initialize_vector_store():
 
 # --- DatabaseChatMemory Class (No changes needed) ---
 class DatabaseChatMemory:
-    # ... (This entire class remains unchanged)
+    # ... (This entire class remains unchanged from your version)
     def __init__(self, db_path, user_id):
         self.db_path = db_path
         self.user_id = user_id
@@ -145,10 +145,10 @@ def setup_conversational_rag_chain():
     pipe = pipeline("text2text-generation", model=model, tokenizer=tokenizer, max_length=1024)
     llm = HuggingFacePipeline(pipeline=pipe)
 
-    contextualize_q_prompt = ChatPromptTemplate.from_messages([("system", "Given a chat history... formulate a standalone question..."), MessagesPlaceholder("chat_history"), ("human", "{input}")])
+    contextualize_q_prompt = ChatPromptTemplate.from_messages([("system", "Given a chat history..."), MessagesPlaceholder("chat_history"), ("human", "{input}")])
     history_aware_retriever = create_history_aware_retriever(llm, retriever, contextualize_q_prompt)
 
-    qa_prompt = ChatPromptTemplate.from_messages([("system", "You are a helpful assistant... context:\n\n{context}"), ("human", "{input}")])
+    qa_prompt = ChatPromptTemplate.from_messages([("system", "Answer based only on the context:\n\n{context}"), ("human", "{input}")])
     question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
     
     rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
