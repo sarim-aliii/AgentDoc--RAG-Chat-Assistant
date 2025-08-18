@@ -32,7 +32,7 @@ FORBIDDEN_KEYWORDS_PATH = "forbidden_keywords.txt"
 JSON_FILE_PATH = "publications.json"
 RELEVANCE_SCORE_THRESHOLD = 1.5
 
-# --- NEW: Data Ingestion Logic (from ingest_data.py) ---
+
 def load_and_split_publications(file_path: str) -> list[Document]:
     """Loads and splits the documents from the JSON file."""
     try:
@@ -80,9 +80,7 @@ def initialize_vector_store():
     else:
         print("Database found. Loading...")
 
-# --- DatabaseChatMemory Class (No changes needed) ---
 class DatabaseChatMemory:
-    # ... (This entire class remains unchanged from your version)
     def __init__(self, db_path, user_id):
         self.db_path = db_path
         self.user_id = user_id
@@ -122,7 +120,6 @@ class DatabaseChatMemory:
     def close(self):
         if self.conn: self.conn.close()
 
-# --- Guardrail Functions (No changes needed) ---
 def load_forbidden_keywords(file_path: str):
     try:
         with open(file_path, "r", encoding="utf-8") as file: return [line.strip() for line in file if line.strip()]
@@ -133,7 +130,6 @@ def is_query_safe(query: str, forbidden_keywords: list[str]) -> bool:
         if keyword in lower_query: return False
     return True
 
-# --- RAG Chain Setup (No changes needed) ---
 def setup_conversational_rag_chain():
     embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME, model_kwargs={'device': 'cpu'})
     vector_store = Chroma(persist_directory=PERSIST_DIRECTORY, embedding_function=embeddings)

@@ -6,18 +6,16 @@ from core import (
     load_forbidden_keywords,
     is_query_safe,
     setup_conversational_rag_chain,
-    initialize_vector_store,  # <-- NEW IMPORT
+    initialize_vector_store,  
     RELEVANCE_SCORE_THRESHOLD,
     DB_PATH,
     FORBIDDEN_KEYWORDS_PATH
 )
 
-# --- Page and Component Setup ---
 st.set_page_config(page_title="AgentDoc", page_icon="🤖", layout="wide")
 st.title("🤖 AgentDoc: Publication QA Assistant")
 
-# --- NEW: Initialize Vector Store on App Start ---
-# This will run once per session and be cached by Streamlit across sessions.
+
 @st.cache_resource(show_spinner="Initializing knowledge base...")
 def init_db():
     initialize_vector_store()
@@ -31,7 +29,6 @@ def load_components():
 rag_chain, vector_store = load_components()
 forbidden_keywords = load_forbidden_keywords(FORBIDDEN_KEYWORDS_PATH)
 
-# --- Session and DB Initialization ---
 user_id = "web_user"
 db_memory = DatabaseChatMemory(db_path=DB_PATH, user_id=user_id)
 
@@ -40,8 +37,7 @@ if "session_id" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": "How can I help you today?"}]
     st.session_state.editing_session_id = None
 
-# (The rest of your app.py file is exactly the same as your last version)
-# ...
+
 def start_new_chat():
     st.session_state.session_id = str(uuid.uuid4())
     st.session_state.messages = [{"role": "assistant", "content": "How can I help you today?"}]
